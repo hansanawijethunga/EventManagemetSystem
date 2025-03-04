@@ -1,0 +1,14 @@
+# This file tells Netlify how to handle routing for a single-page application
+
+[build]
+  # Directory to publish (the output of your build)
+  publish = "dist"
+  # Build command
+  command = "npm run build"
+
+# The following redirect rule ensures that all routes are directed to index.html
+# This allows React Router to handle the routing client-side
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
