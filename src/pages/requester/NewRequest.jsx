@@ -193,7 +193,7 @@ const NewRequest = () => {
               
               <div className="flex items-center text-sm text-gray-600 mb-4">
                 <FiDollarSign className="mr-2 text-gray-400" />
-                ${(eventPackage.price || 0).toLocaleString()}
+                LKR {(eventPackage.price || 0).toLocaleString()}
               </div>
               
               <p className="text-gray-600 mb-4">{eventPackage.description || 'No description available'}</p>
