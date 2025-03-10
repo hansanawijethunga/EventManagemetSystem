@@ -29,6 +29,7 @@ const DashboardLayout = ({ userType }) => {
       ]
     : [
         { path: '/requester', icon: <FiHome size={20} />, label: 'Dashboard' },
+        { path: '/organizers', icon: <FiHome size={20} />, label: 'Organizers' },
         { path: '/requester/requests', icon: <FiCalendar size={20} />, label: 'My Requests' },
         { path: '/requester/profile', icon: <FiUser size={20} />, label: 'Profile' },
       ];
