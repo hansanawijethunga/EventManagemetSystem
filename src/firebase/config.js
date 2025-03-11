@@ -4,13 +4,13 @@ import { getFirestore } from 'firebase/firestore';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDNEr346Q2RfGHohge_XJGC4kC6KRBrHgU",
-  authDomain: "eventhub-ccd7e.firebaseapp.com",
-  projectId: "eventhub-ccd7e",
-  storageBucket: "eventhub-ccd7e.appspot.com",
-  messagingSenderId: "683878351938",
-  appId: "1:683878351938:web:32b73160d4d143ac7159db",
-  measurementId: "G-0L49KMLFK8"
+  apiKey: "AIzaSyDr-nRZN7zACIE1b-Rst3W9qaMVOYfSLUw",
+  authDomain: "eventhub-fabb6.firebaseapp.com",
+  projectId: "eventhub-fabb6",
+  storageBucket: "eventhub-fabb6.firebasestorage.app",
+  messagingSenderId: "129220541464",
+  appId: "1:129220541464:web:5e71320ceb9b4a249d976d",
+  measurementId: "G-MV5T8YYMKC"
 };
 
 // Initialize Firebase - with a check to prevent duplicate initialization
