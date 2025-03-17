@@ -25,23 +25,33 @@ const RequestDetails = () => {
 
   const [request, setRequest] = useState(null);
   const [eventPackage, setEventPackage] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   useEffect(() => {
-    // Get request details
-    const requestData = getEventRequestById(id);
-    if (requestData && requestData.requesterId === currentUser.id) {
-      setRequest(requestData);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Wait for requestData to resolve
+        const requestData = await getEventRequestById(id);
 
-      // Get package details
-      const packageData = getEventPackageById(requestData.packageId);
-      setEventPackage(packageData);
-    } else {
-      // If request doesn't exist or doesn't belong to current user, redirect
-      navigate("/requester/requests");
-    }
-    setLoading(false);
+        if (requestData && requestData.requesterId === currentUser.id) {
+          setRequest(requestData);
+
+          // Wait for packageData to resolve
+          const packageData = await getEventPackageById(requestData.packageId);
+          setEventPackage(packageData);
+        } else {
+          navigate("/requester/requests");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [id, currentUser, getEventRequestById, getEventPackageById, navigate]);
 
   // Format date
@@ -353,7 +363,7 @@ const RequestDetails = () => {
                 Leave Feedback
               </h2>
               <button
-                onClick={() => setIsFeedbackModalOpen(false)}
+                onClick={() => setIsFeedbackModalOpen(true)}
                 className="text-gray-400 hover:text-gray-500"
               >
                 <svg
