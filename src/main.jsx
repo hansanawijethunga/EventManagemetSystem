@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { HashRouter  } from 'react-router-dom'
 import App from './App.jsx'
 import './index.css'
 import { AuthProvider } from './contexts/AuthContext'
@@ -10,7 +10,7 @@ import FirebaseSetup from './components/FirebaseSetup.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <HashRouter >
       <AuthProvider>
         <EventProvider>
           <App />
@@ -18,6 +18,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <FirebaseSetup />
         </EventProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter >
   </React.StrictMode>,
 )
