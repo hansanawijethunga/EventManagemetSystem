@@ -74,18 +74,6 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (email, password) => {
     try {
-      // Create a test user if no users exist (for demo purposes)
-      const testUser = {
-        email: "test@example.com",
-        password: "password123",
-        username: "TestUser",
-        organizationName: "Test Organization",
-        mobileNumber: "123-456-7890",
-        role: "organizer",
-        rating: 4.5,
-        reviewCount: 10
-      };
-
       // Try to sign in with provided credentials
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -123,47 +111,7 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('Login error:', error);
-        
-        // For demo purposes, create a test user if the error is auth/user-not-found
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-          try {
-            // Create test user in Firebase Auth
-            const userCredential = await createUserWithEmailAndPassword(auth, testUser.email, testUser.password);
-            const user = userCredential.user;
-            
-            // Update display name
-            await firebaseUpdateProfile(user, {
-              displayName: testUser.username
-            });
-            
-            // Create user document in Firestore
-            await setDoc(doc(db, 'users', user.uid), {
-              username: testUser.username,
-              organizationName: testUser.organizationName,
-              mobileNumber: testUser.mobileNumber,
-              role: testUser.role,
-              rating: testUser.rating,
-              reviewCount: testUser.reviewCount,
-              createdAt: new Date()
-            });
-            
-            toast.success('Demo account created! Please log in with test@example.com and password123');
-            return false;
-          } catch (createError) {
-            console.error('Error creating test user:', createError);
-            
-            // If the error is auth/email-already-in-use, the test user already exists
-            if (createError.code === 'auth/email-already-in-use') {
-              toast.error('Please use test@example.com and password123 to log in');
-            } else {
-              toast.error('Failed to create demo account. Please try again.');
-            }
-            return false;
-          }
-        } else {
-          toast.error(error.message || 'Invalid email or password');
-          return false;
-        }
+       
       }
     } catch (error) {
       console.error('Login process error:', error);
@@ -276,9 +224,6 @@ export const AuthProvider = ({ children }) => {
   // Get all organizers (for directory)
   const getAllOrganizers = async () => {
     try {
-      // Create a demo organizer if none exist
-      await createDemoOrganizer();
-      
       const organizersQuery = query(
         collection(db, 'users'),
         where('role', '==', 'organizer')
@@ -300,40 +245,6 @@ export const AuthProvider = ({ children }) => {
       console.error('Get organizers error:', error);
       toast.error('Failed to fetch organizers');
       return [];
-    }
-  };
-
-  // Create a demo organizer if none exist
-  const createDemoOrganizer = async () => {
-    try {
-      // Check if we already have organizers
-      const organizersQuery = query(
-        collection(db, 'users'),
-        where('role', '==', 'organizer')
-      );
-      
-      const querySnapshot = await getDocs(organizersQuery);
-      if (!querySnapshot.empty) {
-        return; // Organizers already exist
-      }
-      
-      // Create a demo organizer
-      const demoOrganizer = {
-        username: "EventPro",
-        organizationName: "EventPro Planning Services",
-        mobileNumber: "555-123-4567",
-        role: "organizer",
-        rating: 4.8,
-        reviewCount: 24,
-        email: "eventpro@example.com",
-        createdAt: new Date()
-      };
-      
-      // Create user document in Firestore with a fixed ID for demo purposes
-      await setDoc(doc(db, 'users', "demo-organizer-id"), demoOrganizer);
-      
-    } catch (error) {
-      console.error('Create demo organizer error:', error);
     }
   };
 
