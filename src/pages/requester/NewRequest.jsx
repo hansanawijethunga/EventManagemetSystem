@@ -1,24 +1,28 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useEvent } from '../../contexts/EventContext';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { FiCalendar, FiUsers, FiMessageSquare, FiDollarSign, FiMapPin } from 'react-icons/fi';
-import toast from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { useEvent } from "../../contexts/EventContext";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import {
+  FiCalendar,
+  FiUsers,
+  FiMessageSquare,
+  FiDollarSign,
+  FiMapPin,
+} from "react-icons/fi";
+import toast from "react-hot-toast";
+import { Timestamp } from "firebase/firestore";
 
 const NewRequest = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser } = useAuth();
-  const { 
-    createEventRequest, 
-    getEventPackageById,
-    getOrganizerById
-  } = useEvent();
-  
-  const [packageId, setPackageId] = useState('');
-  const [organizerId, setOrganizerId] = useState('');
+  const { createEventRequest, getEventPackageById, getOrganizerById } =
+    useEvent();
+
+  const [packageId, setPackageId] = useState("");
+  const [organizerId, setOrganizerId] = useState("");
   const [eventPackage, setEventPackage] = useState(null);
   const [organizer, setOrganizer] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,29 +33,29 @@ const NewRequest = () => {
     const fetchData = async () => {
       try {
         const params = new URLSearchParams(location.search);
-        const pkgId = params.get('packageId');
-        const orgId = params.get('organizerId');
-        
+        const pkgId = params.get("packageId");
+        const orgId = params.get("organizerId");
+
         if (pkgId && orgId) {
           setPackageId(pkgId);
           setOrganizerId(orgId);
-          
+
           // Get package and organizer details
           const packageData = await getEventPackageById(pkgId);
           const organizerData = await getOrganizerById(orgId);
-          
+
           if (packageData && organizerData) {
             setEventPackage(packageData);
             setOrganizer(organizerData);
           } else {
             setError("Package or organizer not found");
             // If package or organizer doesn't exist, redirect after a delay
-            setTimeout(() => navigate('/organizers'), 3000);
+            setTimeout(() => navigate("/organizers"), 3000);
           }
         } else {
           setError("Missing package or organizer ID");
           // If no package or organizer ID, redirect after a delay
-          setTimeout(() => navigate('/organizers'), 3000);
+          setTimeout(() => navigate("/organizers"), 3000);
         }
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -60,44 +64,49 @@ const NewRequest = () => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [location.search, getEventPackageById, getOrganizerById, navigate]);
 
   // Validation schema
   const validationSchema = Yup.object({
     eventDate: Yup.date()
-      .required('Event date is required')
-      .min(new Date(), 'Event date must be in the future'),
+      .required("Event date is required")
+      .min(new Date(), "Event date must be in the future"),
     attendees: Yup.number()
-      .required('Number of attendees is required')
-      .positive('Number of attendees must be positive')
-      .integer('Number of attendees must be a whole number'),
+      .required("Number of attendees is required")
+      .positive("Number of attendees must be positive")
+      .integer("Number of attendees must be a whole number"),
     comments: Yup.string()
-      .required('Please provide some details about your event')
-      .min(10, 'Comments must be at least 10 characters')
+      .required("Please provide some details about your event")
+      .min(10, "Comments must be at least 10 characters"),
   });
 
   // Initial form values
   const initialValues = {
-    eventDate: '',
-    attendees: '',
-    comments: ''
+    eventDate: "",
+    attendees: "",
+    comments: "",
   };
 
   // Handle form submission
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
+      const date = new Date(values.eventDate);
+      if (isNaN(date.getTime())) {
+        throw new Error("Invalid eventDate value");
+      }
+
       const requestData = {
         packageId,
         organizerId,
-        eventDate: new Date(values.eventDate).toISOString(),
+        eventDate: Timestamp.fromDate(date),
         attendees: parseInt(values.attendees, 10),
-        comments: values.comments
+        comments: values.comments,
       };
-      
+
       const newRequest = await createEventRequest(requestData);
-      
+
       if (newRequest && newRequest.id) {
         // Redirect to request details
         navigate(`/requester/requests/${newRequest.id}`);
@@ -116,13 +125,13 @@ const NewRequest = () => {
 
   // Format date
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     try {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      const options = { year: "numeric", month: "long", day: "numeric" };
       return new Date(dateString).toLocaleDateString(undefined, options);
     } catch (err) {
       console.error("Error formatting date:", err);
-      return '';
+      return "";
     }
   };
 
@@ -149,8 +158,13 @@ const NewRequest = () => {
   if (!eventPackage || !organizer) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Package Not Found</h2>
-        <p className="text-lg text-gray-600 mb-8">The event package you're looking for doesn't exist or has been removed.</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Package Not Found
+        </h2>
+        <p className="text-lg text-gray-600 mb-8">
+          The event package you're looking for doesn't exist or has been
+          removed.
+        </p>
         <Link to="/organizers" className="btn btn-primary">
           Browse Organizers
         </Link>
@@ -166,53 +180,67 @@ const NewRequest = () => {
           Back to Organizer
         </Link>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Event Package Details */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Package Details</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Package Details
+              </h2>
+
               {eventPackage.imageUrl && (
                 <div className="mb-4">
                   <img
                     src={eventPackage.imageUrl}
-                    alt={eventPackage.title || 'Event Package'}
+                    alt={eventPackage.title || "Event Package"}
                     className="w-full h-48 object-cover rounded-md"
                   />
                 </div>
               )}
-              
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{eventPackage.title || 'Unnamed Package'}</h3>
-              
+
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {eventPackage.title || "Unnamed Package"}
+              </h3>
+
               <div className="flex items-center text-sm text-gray-600 mb-2">
                 <FiMapPin className="mr-2 text-gray-400" />
-                {eventPackage.location || 'Location not specified'}
+                {eventPackage.location || "Location not specified"}
               </div>
-              
+
               <div className="flex items-center text-sm text-gray-600 mb-4">
                 <FiDollarSign className="mr-2 text-gray-400" />
                 LKR {(eventPackage.price || 0).toLocaleString()}
               </div>
-              
-              <p className="text-gray-600 mb-4">{eventPackage.description || 'No description available'}</p>
-              
+
+              <p className="text-gray-600 mb-4">
+                {eventPackage.description || "No description available"}
+              </p>
+
               <div className="border-t border-gray-200 pt-4 mt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Organizer</h4>
-                <p className="font-medium">{organizer.organizationName || 'Organization'}</p>
-                <p className="text-sm text-gray-600">{organizer.email || 'No email provided'}</p>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Organizer
+                </h4>
+                <p className="font-medium">
+                  {organizer.organizationName || "Organization"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {organizer.email || "No email provided"}
+                </p>
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Request Form */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Event Request Form</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                Event Request Form
+              </h2>
+
               <Formik
                 initialValues={initialValues}
                 validationSchema={validationSchema}
@@ -221,7 +249,10 @@ const NewRequest = () => {
                 {({ isSubmitting }) => (
                   <Form className="space-y-6">
                     <div>
-                      <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="eventDate"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Event Date
                       </label>
                       <div className="relative rounded-md shadow-sm">
@@ -232,15 +263,22 @@ const NewRequest = () => {
                           type="date"
                           name="eventDate"
                           id="eventDate"
-                          min={new Date().toISOString().split('T')[0]}
+                          min={new Date().toISOString().split("T")[0]}
                           className="input-field pl-10"
                         />
                       </div>
-                      <ErrorMessage name="eventDate" component="p" className="error-message" />
+                      <ErrorMessage
+                        name="eventDate"
+                        component="p"
+                        className="error-message"
+                      />
                     </div>
-                    
+
                     <div>
-                      <label htmlFor="attendees" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="attendees"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Number of Attendees
                       </label>
                       <div className="relative rounded-md shadow-sm">
@@ -255,11 +293,18 @@ const NewRequest = () => {
                           className="input-field pl-10"
                         />
                       </div>
-                      <ErrorMessage name="attendees" component="p" className="error-message" />
+                      <ErrorMessage
+                        name="attendees"
+                        component="p"
+                        className="error-message"
+                      />
                     </div>
-                    
+
                     <div>
-                      <label htmlFor="comments" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="comments"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Event Details
                       </label>
                       <div className="relative rounded-md shadow-sm">
@@ -275,16 +320,20 @@ const NewRequest = () => {
                           placeholder="Please provide details about your event, specific requirements, or any questions you have..."
                         />
                       </div>
-                      <ErrorMessage name="comments" component="p" className="error-message" />
+                      <ErrorMessage
+                        name="comments"
+                        component="p"
+                        className="error-message"
+                      />
                     </div>
-                    
+
                     <div className="flex justify-end pt-4">
                       <button
                         type="submit"
                         disabled={isSubmitting}
                         className="btn btn-primary"
                       >
-                        {isSubmitting ? 'Submitting...' : 'Submit Request'}
+                        {isSubmitting ? "Submitting..." : "Submit Request"}
                       </button>
                     </div>
                   </Form>
