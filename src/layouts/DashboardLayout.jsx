@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiMenu, FiX, FiHome, FiCalendar, FiPackage, FiList, FiUser, FiLogOut } from 'react-icons/fi';
+import {FiMenu, FiX, FiHome, FiCalendar, FiPackage, FiList, FiUser, FiLogOut, FiBookOpen} from 'react-icons/fi';
 
 const DashboardLayout = ({ userType }) => {
   const { currentUser, logout } = useAuth();
@@ -31,6 +31,7 @@ const DashboardLayout = ({ userType }) => {
         { path: '/requester', icon: <FiHome size={20} />, label: 'Dashboard' },
         { path: '/requester/organizer', icon: <FiHome size={20} />, label: 'Organizers' },
         { path: '/requester/requests', icon: <FiCalendar size={20} />, label: 'My Requests' },
+        { path: '/requester/events', icon: <FiBookOpen size={20} />, label: 'Events' },
         { path: '/requester/profile', icon: <FiUser size={20} />, label: 'Profile' },
       ];
 
