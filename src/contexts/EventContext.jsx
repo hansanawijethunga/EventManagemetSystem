@@ -1,22 +1,20 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { useAuth } from "./AuthContext";
+import {createContext, useContext, useEffect, useState} from "react";
+import {useAuth} from "./AuthContext";
 import toast from "react-hot-toast";
 import {
   collection,
-  doc,
-  setDoc,
-  updateDoc,
   deleteDoc,
+  doc,
   getDoc,
   getDocs,
-  query,
-  where,
-  addDoc,
-  serverTimestamp,
   onSnapshot,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
 } from "firebase/firestore";
-import { db } from "../firebase/config";
+import {db} from "../firebase/config";
 
 // Create the context
 const EventContext = createContext();
@@ -429,6 +427,21 @@ export const EventProvider = ({ children }) => {
       return false;
     }
   };
+  const getAllEventPackages = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "eventPackages"));
+      return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        // Convert Firestore timestamps if needed
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || null,
+      }));
+    } catch (error) {
+      console.error("Error fetching all packages:", error);
+      // toast.error("Failed to load packages");
+      return [];
+    }
+  };
 
   const getEventPackageById = async (id) => {
     try {
@@ -674,6 +687,7 @@ export const EventProvider = ({ children }) => {
     addEventPackage,
     updateEventPackage,
     deleteEventPackage,
+    getAllEventPackages,
     getEventPackageById,
     getEventPackagesByType,
     getEventPackagesByOrganizer,

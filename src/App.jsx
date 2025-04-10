@@ -27,6 +27,7 @@ import MyRequests from './pages/requester/MyRequests'
 import RequestDetails from './pages/requester/RequestDetails'
 import NewRequest from './pages/requester/NewRequest'
 import RequesterProfile from './pages/requester/Profile'
+import Events from "./pages/requester/Events.jsx";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -84,6 +85,7 @@ function App() {
       >
         <Route index element={<RequesterDashboard />} />
         <Route path="requests" element={<MyRequests />} />
+        <Route path="events" element={<Events />} />
         <Route path="requests/new" element={<NewRequest />} />
         <Route path="requests/:id" element={<RequestDetails />} />
         <Route path="profile" element={<RequesterProfile />} />
