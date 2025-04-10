@@ -522,8 +522,7 @@ export const EventProvider = ({ children }) => {
       });
  
 
-      const date = new Date(requestData.eventDate.seconds * 1000);
-      console.log(organizer.email);
+      const date = new Date(requestData.eventDate.seconds * 1000);      
  
       sendEmail({
         name: organizer.name,
@@ -552,9 +551,25 @@ export const EventProvider = ({ children }) => {
       if (!id) {
         throw new Error("Invalid request ID");
       }
-
+      console.log(updatedData)
       const requestRef = doc(db, "eventRequests", id);
       await updateDoc(requestRef, updatedData);
+      const updatedDocSnap = await getDoc(requestRef);
+      const requesterRef = doc(db,"users",updatedDocSnap.requesterId)
+      const OrganizerRef = doc(db,"users",updatedDocSnap.organizerId)
+
+      const requesterData = requesterSnap.data();
+      const organizerData = organizerSnap.data();
+      
+      const date = new Date(updatedDocSnap.eventDate.seconds * 1000);  
+
+      sendEmail({
+        name: organizer.name,
+        message: `Your event request on ${date} was updated. Current status of the request is ${updatedData.status}.`,
+        subject: "Event Hub",
+        to_email: organizer.email,
+      });
+      console.log("Updated document data:", updatedDocSnap.data());
 
       // No need to update local state as the onSnapshot listener will handle it
       toast.success("Event request updated successfully");
@@ -574,9 +589,11 @@ export const EventProvider = ({ children }) => {
 
       const requestRef = doc(db, "eventRequests", id);
       await updateDoc(requestRef, { status: newStatus });
-
+      console.log(id)
+      console.log(newStatus)
+      console.log(requestRef)
       // No need to update local state as the onSnapshot listener will handle it
-      toast.success(`Request status updated to ${newStatus}`);
+      toast.success(`Test Request status updated to ${newStatus}`);
       return true;
     } catch (error) {
       console.error("Update request status error:", error);
