@@ -140,6 +140,7 @@ export const AuthProvider = ({ children }) => {
         role: 'organizer',
         rating: 0,
         reviewCount: 0,
+        email: userData.email,
         createdAt: new Date()
       });
       
@@ -170,6 +171,7 @@ export const AuthProvider = ({ children }) => {
         name: userData.name,
         position: userData.position || '',
         role: 'requester',
+        email: userData.email,
         createdAt: new Date()
       });
       
