@@ -9,11 +9,11 @@ export const useEmail = () => {
   const sendEmail = async (formValues) => {
     try {
       const result = await emailjs.send(SERVICE_ID, TEMPLATE_ID, formValues, PUBLIC_KEY)
-      toast.success('Email sent successfully!')
+      // toast.success('Email sent successfully!')
       console.log(result.text)
       return true
     } catch (error) {
-      toast.error('Failed to send email.')
+      // toast.error('Failed to send email.')
       console.error('EmailJS Error:', error)
       return false
     }

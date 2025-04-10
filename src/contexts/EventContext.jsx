@@ -34,6 +34,7 @@ export const EventProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { currentUser, getOrganizerById } = useAuth();
+  const { sendEmail } = useEmail();
 
   // Load initial data from Firestore with real-time updates
   useEffect(() => {
@@ -489,7 +490,7 @@ export const EventProvider = ({ children }) => {
   // Event Request operations
   const createEventRequest = async (requestData) => {
     try {
-      const { sendEmail } = useEmail()
+      // const { sendEmail } = useEmail()
       if (!currentUser) {
         throw new Error("You must be logged in to create a request");
       }
@@ -535,8 +536,7 @@ export const EventProvider = ({ children }) => {
       });
  
 
-      const date = new Date(requestData.eventDate.seconds * 1000);
-      console.log(organizer.email);
+      const date = new Date(requestData.eventDate.seconds * 1000);      
  
       sendEmail({
         name: organizer.name,
@@ -561,23 +561,52 @@ export const EventProvider = ({ children }) => {
   };
 
   const updateEventRequest = async (id, updatedData) => {
+    if (!id) {
+      toast.error("Invalid request ID");
+      return false;
+    }
+  
     try {
-      if (!id) {
-        throw new Error("Invalid request ID");
-      }
-
       const requestRef = doc(db, "eventRequests", id);
+  
       await updateDoc(requestRef, updatedData);
-
-      // No need to update local state as the onSnapshot listener will handle it
+      const updatedDocSnap = await getDoc(requestRef);
+      const updatedDataObj = updatedDocSnap.data();
+  
+      const [requesterSnap, organizerSnap] = await Promise.all([
+        getDoc(doc(db, "users", updatedDataObj.requesterId)),
+        getDoc(doc(db, "users", updatedDataObj.organizerId)),
+      ]);
+  
+      const requesterData = requesterSnap.data();
+      const organizerData = organizerSnap.data();
+  
+      const eventDate = new Date(updatedDataObj.eventDate.seconds * 1000);
+      const status = updatedData.status;
+  
+      console.log("Updated Data:", updatedData);
+      console.log("Requester Data:", requesterData);
+      console.log("Organizer Data:", organizerData);
+  
+      sendEmail({
+        name: requesterData.name,
+        message: `Your event request on ${eventDate} was updated. Current status of the request is ${status}. Please log in to the portal for more details.`,
+        subject: "Event Hub",
+        to_email: requesterData.email,
+        cc_email: organizerData.email,
+      });
+  
+      console.log("Updated document data:", updatedDataObj);
       toast.success("Event request updated successfully");
       return true;
+  
     } catch (error) {
       console.error("Update event request error:", error);
       toast.error("Failed to update event request");
       return false;
     }
   };
+  
 
   const updateEventRequestStatus = async (id, newStatus) => {
     try {
@@ -587,9 +616,11 @@ export const EventProvider = ({ children }) => {
 
       const requestRef = doc(db, "eventRequests", id);
       await updateDoc(requestRef, { status: newStatus });
-
+      console.log(id)
+      console.log(newStatus)
+      console.log(requestRef)
       // No need to update local state as the onSnapshot listener will handle it
-      toast.success(`Request status updated to ${newStatus}`);
+      toast.success(`Test Request status updated to ${newStatus}`);
       return true;
     } catch (error) {
       console.error("Update request status error:", error);
