@@ -582,11 +582,7 @@ export const EventProvider = ({ children }) => {
       const organizerData = organizerSnap.data();
   
       const eventDate = new Date(updatedDataObj.eventDate.seconds * 1000);
-      const status = updatedData.status;
-  
-      console.log("Updated Data:", updatedData);
-      console.log("Requester Data:", requesterData);
-      console.log("Organizer Data:", organizerData);
+      const status = updatedData.status;     
   
       sendEmail({
         name: requesterData.name,
@@ -596,7 +592,7 @@ export const EventProvider = ({ children }) => {
         cc_email: organizerData.email,
       });
   
-      console.log("Updated document data:", updatedDataObj);
+      // console.log("Updated document data:", updatedDataObj);
       toast.success("Event request updated successfully");
       return true;
   
@@ -613,12 +609,29 @@ export const EventProvider = ({ children }) => {
       if (!id) {
         throw new Error("Invalid request ID");
       }
-
       const requestRef = doc(db, "eventRequests", id);
       await updateDoc(requestRef, { status: newStatus });
-      console.log(id)
-      console.log(newStatus)
-      console.log(requestRef)
+      const updatedDocSnap = await getDoc(requestRef);
+      const updatedDataObj = updatedDocSnap.data();
+
+      const [requesterSnap, organizerSnap] = await Promise.all([
+        getDoc(doc(db, "users", updatedDataObj.requesterId)),
+        getDoc(doc(db, "users", updatedDataObj.organizerId)),
+      ]);
+
+      const requesterData = requesterSnap.data();
+      const organizerData = organizerSnap.data();
+      const eventDate = new Date(updatedDataObj.eventDate.seconds * 1000);
+
+      sendEmail({
+        name: requesterData.name,
+        message: `Your event request on ${eventDate} was updated. Current status of the request is ${newStatus}. Please log in to the portal for more details.`,
+        subject: "Event Hub",
+        to_email: requesterData.email,
+        cc_email: organizerData.email,
+      });
+
+
       // No need to update local state as the onSnapshot listener will handle it
       toast.success(`Test Request status updated to ${newStatus}`);
       return true;
