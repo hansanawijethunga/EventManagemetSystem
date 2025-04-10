@@ -34,6 +34,7 @@ export const EventProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { currentUser, getOrganizerById } = useAuth();
+  const { sendEmail } = useEmail();
 
   // Load initial data from Firestore with real-time updates
   useEffect(() => {
@@ -489,7 +490,7 @@ export const EventProvider = ({ children }) => {
   // Event Request operations
   const createEventRequest = async (requestData) => {
     try {
-      const { sendEmail } = useEmail()
+      // const { sendEmail } = useEmail()
       if (!currentUser) {
         throw new Error("You must be logged in to create a request");
       }
@@ -570,17 +571,16 @@ export const EventProvider = ({ children }) => {
       const updatedDocSnap = await getDoc(requestRef);
       const requesterRef = doc(db,"users",updatedDocSnap.requesterId)
       const OrganizerRef = doc(db,"users",updatedDocSnap.organizerId)
-
       const requesterData = requesterSnap.data();
-      const organizerData = organizerSnap.data();
-      
+      const organizerData = organizerSnap.data();      
       const date = new Date(updatedDocSnap.eventDate.seconds * 1000);  
 
       sendEmail({
-        name: organizer.name,
+        name: requesterData.name,
         message: `Your event request on ${date} was updated. Current status of the request is ${updatedData.status}.`,
         subject: "Event Hub",
-        to_email: organizer.email,
+        to_email: requesterData.email,
+        cc_email: organizerData.email
       });
       console.log("Updated document data:", updatedDocSnap.data());
 
