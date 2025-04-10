@@ -86,6 +86,7 @@ function App() {
         <Route index element={<RequesterDashboard />} />
         <Route path="requests" element={<MyRequests />} />
         <Route path="events" element={<Events />} />
+        <Route path="organizer" element={<OrganizerDirectory />} />
         <Route path="requests/new" element={<NewRequest />} />
         <Route path="requests/:id" element={<RequestDetails />} />
         <Route path="profile" element={<RequesterProfile />} />

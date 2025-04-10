@@ -1,6 +1,7 @@
 import {createContext, useContext, useEffect, useState} from "react";
 import {useAuth} from "./AuthContext";
 import toast from "react-hot-toast";
+import { useEmail } from '../hooks/useEmail'
 import {
   collection,
   deleteDoc,
@@ -488,6 +489,7 @@ export const EventProvider = ({ children }) => {
   // Event Request operations
   const createEventRequest = async (requestData) => {
     try {
+      const { sendEmail } = useEmail()
       if (!currentUser) {
         throw new Error("You must be logged in to create a request");
       }
@@ -523,6 +525,29 @@ export const EventProvider = ({ children }) => {
         requestDate: new Date().toISOString(),
         eventDate: requestData.eventDate.toDate().toISOString(),
       };
+      const organizer = await getOrganizerById(requestData.organizerId)
+   
+      sendEmail({
+        name: currentUser.name,
+        message: `Your Event Has Created Successfully Please contact your organizer ${organizer.name} via ${organizer.email} / ${organizer.mobileNumber}`,
+        subject: "Event Hub",
+        to_email: currentUser.email,
+      });
+ 
+
+      const date = new Date(requestData.eventDate.seconds * 1000);
+      console.log(organizer.email);
+ 
+      sendEmail({
+        name: organizer.name,
+        message: `You Have a New Event on ${date}`,
+        subject: "Event Hub",
+        to_email: organizer.email,
+      });
+
+      // const organizer =  get
+ 
+
 
       // No need to update local state as the onSnapshot listener will handle it
       toast.success("Event request submitted successfully");
