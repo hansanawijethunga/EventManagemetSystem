@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvent } from "../../contexts/EventContext";
 import { FiCalendar, FiClock, FiUsers, FiMessageSquare } from "react-icons/fi";
-
+import { Field } from "formik";
 const EventRequests = () => {
   const { currentUser } = useAuth();
   const {
@@ -359,6 +359,7 @@ const EventRequests = () => {
               <div className="bg-gray-50 p-3 rounded-md">
                 <div className="flex items-start">
                   <FiMessageSquare className="mr-2 mt-1 text-gray-400" />
+
                   <p className="text-sm text-gray-900">
                     {selectedRequest.comments || "No comments provided."}
                   </p>
@@ -395,14 +396,24 @@ const EventRequests = () => {
                 )}
 
                 {selectedRequest.status === "Confirmed" && (
-                  <button
-                    onClick={() =>
-                      handleStatusUpdate(selectedRequest.id, "Completed")
-                    }
-                    className="btn bg-green-600 text-white hover:bg-green-700"
-                  >
-                    Mark as Completed
-                  </button>
+                  <>
+                    <button
+                      onClick={() =>
+                        handleStatusUpdate(selectedRequest.id, "Completed")
+                      }
+                      className="btn bg-green-600 text-white hover:bg-green-700"
+                    >
+                      Mark as Completed
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleStatusUpdate(selectedRequest.id, "Cancelled")
+                      }
+                      className="btn bg-red-600 text-white hover:bg-yellow-700"
+                    >
+                      Mark as Cancel
+                    </button>
+                  </>
                 )}
               </div>
             </div>
