@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvent } from "../../contexts/EventContext";
-import { FiCalendar, FiClock, FiUsers, FiMessageSquare } from "react-icons/fi";
+import {FiCalendar, FiClock, FiUsers, FiMessageSquare, FiFilePlus} from "react-icons/fi";
 import { Field } from "formik";
 const EventRequests = () => {
   const { currentUser } = useAuth();
@@ -71,7 +71,31 @@ const EventRequests = () => {
     const eventPackage = getEventPackageById(packageId);
     return eventPackage || { title: "Unknown Package", price: 0 };
   };
+  // file upload section
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState({}); // { [requestId]: File }
 
+  function handleUploadModal() {
+    setIsUploadOpen((prev) => !prev);
+  }
+
+  const handleFileChange = (e, requestId) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadedFiles(prev => ({ ...prev, [requestId]: file }));
+    }
+  };
+
+  function handleUpload() {
+    if (selectedFile) {
+      // Simulate upload or handle file logic here
+      console.log('File ready to upload:', selectedFile.name);
+      setIsUploadOpen(false);
+      setSelectedFile(null);
+      // Add your actual upload logic or API call here
+    }
+  }
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Event Requests</h1>
@@ -185,6 +209,12 @@ const EventRequests = () => {
                   </th>
                   <th
                     scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Attachment
+                  </th>
+                  <th
+                    scope="col"
                     className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Actions
@@ -231,6 +261,27 @@ const EventRequests = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(request.requestDate)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center gap-4">
+                          {/* File name preview */}
+                          {uploadedFiles[request.id] && (
+                              <span className="text-sm text-gray-600 underline">
+                              {/* Get file extension only */}
+                                {uploadedFiles[request.id].name.split('.').pop()?.toUpperCase()}
+                              </span>
+                          )}
+
+                          {/* Upload button */}
+                          <label className="relative h-10 w-10 bg-blue-100 hover:bg-blue-50 flex justify-center items-center rounded-full cursor-pointer">
+                            <FiFilePlus className="h-6 w-6 text-blue-600 hover:text-blue-400" />
+                            <input
+                                type="file"
+                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                onChange={(e) => handleFileChange(e, request.id)}
+                            />
+                          </label>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
