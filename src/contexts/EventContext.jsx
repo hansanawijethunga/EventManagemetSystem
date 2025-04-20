@@ -1,7 +1,7 @@
-import {createContext, useContext, useEffect, useState} from "react";
-import {useAuth} from "./AuthContext";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
-import { useEmail } from '../hooks/useEmail'
+import { useEmail } from "../hooks/useEmail";
 import {
   collection,
   deleteDoc,
@@ -15,7 +15,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import {db} from "../firebase/config";
+import { db } from "../firebase/config";
 
 // Create the context
 const EventContext = createContext();
@@ -31,6 +31,7 @@ export const EventProvider = ({ children }) => {
   const [eventTypes, setEventTypes] = useState([]);
   const [eventPackages, setEventPackages] = useState([]);
   const [eventRequests, setEventRequests] = useState([]);
+  const [requesters, setRequesters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { currentUser, getOrganizerById } = useAuth();
@@ -41,14 +42,14 @@ export const EventProvider = ({ children }) => {
     let typesUnsubscribe = null;
     let packagesUnsubscribe = null;
     let requestsUnsubscribe = null;
-
+    let usersUnsubscribe = null;
     const setupSubscriptions = async () => {
       try {
         setLoading(true);
         setError(null);
 
         // Create sample data for demo purposes
-        await createSampleData();
+        // await createSampleData();
 
         // Set up real-time listeners for event types
         typesUnsubscribe = onSnapshot(
@@ -67,6 +68,25 @@ export const EventProvider = ({ children }) => {
           }
         );
 
+        const q = query(
+          collection(db, "users"),
+          where("role", "==", "requester")
+        );
+        usersUnsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            const usersData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            console.log("Users loaded:", usersData.length);
+            setRequesters(usersData);
+          },
+          (err) => {
+            console.error("Error in users listener:", err);
+            setError("Failed to load users");
+          }
+        );
         // Set up real-time listeners for event packages
         packagesUnsubscribe = onSnapshot(
           collection(db, "eventPackages"),
@@ -117,6 +137,7 @@ export const EventProvider = ({ children }) => {
         setEventTypes([]);
         setEventPackages([]);
         setEventRequests([]);
+        setRequesters([]);
       } finally {
         setLoading(false);
       }
@@ -129,6 +150,7 @@ export const EventProvider = ({ children }) => {
       if (typesUnsubscribe) typesUnsubscribe();
       if (packagesUnsubscribe) packagesUnsubscribe();
       if (requestsUnsubscribe) requestsUnsubscribe();
+      if (usersUnsubscribe) usersUnsubscribe();
     };
   }, []);
 
@@ -348,6 +370,10 @@ export const EventProvider = ({ children }) => {
     );
   };
 
+  const getRequesterById = async (id) => {
+    if (!id || !Array.isArray(requesters)) return [];
+    return requesters.filter((requester) => requester.id === id);
+  };
   // Event Package CRUD operations
   const addEventPackage = async (eventPackage) => {
     try {
@@ -526,18 +552,17 @@ export const EventProvider = ({ children }) => {
         requestDate: new Date().toISOString(),
         eventDate: requestData.eventDate.toDate().toISOString(),
       };
-      const organizer = await getOrganizerById(requestData.organizerId)
-   
+      const organizer = await getOrganizerById(requestData.organizerId);
+
       sendEmail({
         name: currentUser.name,
         message: `Your Event Has Created Successfully Please contact your organizer ${organizer.name} via ${organizer.email} / ${organizer.mobileNumber}`,
         subject: "Event Hub",
         to_email: currentUser.email,
       });
- 
 
-      const date = new Date(requestData.eventDate.seconds * 1000);      
- 
+      const date = new Date(requestData.eventDate.seconds * 1000);
+
       sendEmail({
         name: organizer.name,
         message: `You Have a New Event on ${date}`,
@@ -546,8 +571,6 @@ export const EventProvider = ({ children }) => {
       });
 
       // const organizer =  get
- 
-
 
       // No need to update local state as the onSnapshot listener will handle it
       toast.success("Event request submitted successfully");
@@ -565,25 +588,25 @@ export const EventProvider = ({ children }) => {
       toast.error("Invalid request ID");
       return false;
     }
-  
+
     try {
       const requestRef = doc(db, "eventRequests", id);
-  
+
       await updateDoc(requestRef, updatedData);
       const updatedDocSnap = await getDoc(requestRef);
       const updatedDataObj = updatedDocSnap.data();
-  
+
       const [requesterSnap, organizerSnap] = await Promise.all([
         getDoc(doc(db, "users", updatedDataObj.requesterId)),
         getDoc(doc(db, "users", updatedDataObj.organizerId)),
       ]);
-  
+
       const requesterData = requesterSnap.data();
       const organizerData = organizerSnap.data();
-  
+
       const eventDate = new Date(updatedDataObj.eventDate.seconds * 1000);
-      const status = updatedData.status;     
-  
+      const status = updatedData.status;
+
       sendEmail({
         name: requesterData.name,
         message: `Your event request on ${eventDate} was updated. Current status of the request is ${status}. Please log in to the portal for more details.`,
@@ -591,18 +614,16 @@ export const EventProvider = ({ children }) => {
         to_email: requesterData.email,
         cc_email: organizerData.email,
       });
-  
+
       // console.log("Updated document data:", updatedDataObj);
       toast.success("Event request updated successfully");
       return true;
-  
     } catch (error) {
       console.error("Update event request error:", error);
       toast.error("Failed to update event request");
       return false;
     }
   };
-  
 
   const updateEventRequestStatus = async (id, newStatus) => {
     try {
@@ -630,7 +651,6 @@ export const EventProvider = ({ children }) => {
         to_email: requesterData.email,
         cc_email: organizerData.email,
       });
-
 
       // No need to update local state as the onSnapshot listener will handle it
       toast.success(`Test Request status updated to ${newStatus}`);
@@ -750,7 +770,7 @@ export const EventProvider = ({ children }) => {
     deleteEventType,
     getEventTypeById,
     getEventTypesByOrganizer,
-
+    getRequesterById,
     // Event Packages
     eventPackages,
     addEventPackage,
