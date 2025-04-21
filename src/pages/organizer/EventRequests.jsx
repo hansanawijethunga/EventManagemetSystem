@@ -1,20 +1,37 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEvent } from "../../contexts/EventContext";
-import { FiCalendar, FiClock, FiUsers, FiMessageSquare } from "react-icons/fi";
-
+import {
+  FiCalendar,
+  FiClock,
+  FiUsers,
+  FiMessageSquare,
+  FiFilePlus,
+} from "react-icons/fi";
+import { Field } from "formik";
 const EventRequests = () => {
   const { currentUser } = useAuth();
   const {
     getEventRequestsByOrganizer,
     updateEventRequestStatus,
     getEventPackageById,
+    getRequesterById,
   } = useEvent();
 
   const [requests, setRequests] = useState([]);
+
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  // const [requester, setRequester] = useState([]);
+  const [requester, setRequester] = useState({
+    id: "",
+    name: "",
+    email: "",
+    position: "",
+    role: "",
+    mobileNumber: "",
+  });
 
   // Load requests
   useEffect(() => {
@@ -34,8 +51,13 @@ const EventRequests = () => {
         );
 
   // Open request details modal
-  const openRequestDetails = (request) => {
+  const openRequestDetails = async (request) => {
     setSelectedRequest(request);
+    const requesterArray = await getRequesterById(request.requesterId);
+    const singleRequesterObject = requesterArray[0];
+    setRequester(singleRequesterObject);
+    const firstRequester = requester[0];
+
     setIsModalOpen(true);
   };
 
@@ -71,7 +93,31 @@ const EventRequests = () => {
     const eventPackage = getEventPackageById(packageId);
     return eventPackage || { title: "Unknown Package", price: 0 };
   };
+  // file upload section
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState({}); // { [requestId]: File }
 
+  function handleUploadModal() {
+    setIsUploadOpen((prev) => !prev);
+  }
+
+  const handleFileChange = (e, requestId) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadedFiles((prev) => ({ ...prev, [requestId]: file }));
+    }
+  };
+
+  function handleUpload() {
+    if (selectedFile) {
+      // Simulate upload or handle file logic here
+      console.log("File ready to upload:", selectedFile.name);
+      setIsUploadOpen(false);
+      setSelectedFile(null);
+      // Add your actual upload logic or API call here
+    }
+  }
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Event Requests</h1>
@@ -185,6 +231,12 @@ const EventRequests = () => {
                   </th>
                   <th
                     scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Attachment
+                  </th>
+                  <th
+                    scope="col"
                     className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Actions
@@ -194,6 +246,7 @@ const EventRequests = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredRequests.map((request) => {
                   const packageDetails = getPackageDetails(request.packageId);
+                  //const requester = getRequesterById(request.requesterId);
                   return (
                     <tr key={request.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -231,6 +284,30 @@ const EventRequests = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(request.requestDate)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center gap-4">
+                          {/* File name preview */}
+                          {uploadedFiles[request.id] && (
+                            <span className="text-sm text-gray-600 underline">
+                              {/* Get file extension only */}
+                              {uploadedFiles[request.id].name
+                                .split(".")
+                                .pop()
+                                ?.toUpperCase()}
+                            </span>
+                          )}
+
+                          {/* Upload button */}
+                          <label className="relative h-10 w-10 bg-blue-100 hover:bg-blue-50 flex justify-center items-center rounded-full cursor-pointer">
+                            <FiFilePlus className="h-6 w-6 text-blue-600 hover:text-blue-400" />
+                            <input
+                              type="file"
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              onChange={(e) => handleFileChange(e, request.id)}
+                            />
+                          </label>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
@@ -350,8 +427,29 @@ const EventRequests = () => {
                   {selectedRequest.status}
                 </span>
               </div>
-            </div>
 
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  Contact
+                </h3>
+                <div className="flex items-center">
+                  <FiUsers className="mr-2 text-gray-400" />
+                  <p className="text-base text-gray-900">
+                    {requester.mobileNumber}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  Email
+                </h3>
+                <div className="flex items-center">
+                  <FiUsers className="mr-2 text-gray-400" />
+                  <p className="text-base text-gray-900">{requester.email}</p>
+                </div>
+              </div>
+            </div>
             <div className="mb-6">
               <h3 className="text-sm font-medium text-gray-500 mb-1">
                 Comments
@@ -359,6 +457,7 @@ const EventRequests = () => {
               <div className="bg-gray-50 p-3 rounded-md">
                 <div className="flex items-start">
                   <FiMessageSquare className="mr-2 mt-1 text-gray-400" />
+
                   <p className="text-sm text-gray-900">
                     {selectedRequest.comments || "No comments provided."}
                   </p>
@@ -395,14 +494,24 @@ const EventRequests = () => {
                 )}
 
                 {selectedRequest.status === "Confirmed" && (
-                  <button
-                    onClick={() =>
-                      handleStatusUpdate(selectedRequest.id, "Completed")
-                    }
-                    className="btn bg-green-600 text-white hover:bg-green-700"
-                  >
-                    Mark as Completed
-                  </button>
+                  <>
+                    <button
+                      onClick={() =>
+                        handleStatusUpdate(selectedRequest.id, "Completed")
+                      }
+                      className="btn bg-green-600 text-white hover:bg-green-700"
+                    >
+                      Mark as Completed
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleStatusUpdate(selectedRequest.id, "Cancelled")
+                      }
+                      className="btn bg-red-600 text-white hover:bg-yellow-700"
+                    >
+                      Mark as Cancel
+                    </button>
+                  </>
                 )}
               </div>
             </div>

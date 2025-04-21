@@ -1,6 +1,6 @@
 {
   "name": "event-management-app",
-  "homepage": "https://hansanawijethunga.github.io/EventManagemetSystem/",
+  "homepage": "https://udara-chinthaka.github.io/ems",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "autoprefixer": "^10.4.16",
+    "emailjs-com": "^3.2.0",
     "firebase": "^10.7.1",
     "formik": "^2.4.5",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.4.31",
     "react": "^18.2.0",
     "react-calendar": "^4.6.1",
