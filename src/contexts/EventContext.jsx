@@ -155,100 +155,100 @@ export const EventProvider = ({ children }) => {
   }, []);
 
   // Create sample data for demo purposes
-  const createSampleData = async () => {
-    try {
-      // Check if we already have event types
-      const typesSnapshot = await getDocs(collection(db, "eventTypes"));
-      if (!typesSnapshot.empty) {
-        return; // Data already exists, no need to create sample data
-      }
-
-      // Sample organizer ID (this should be the ID of the demo user)
-      const organizerId = "demo-organizer-id";
-
-      // Create sample event types
-      const eventTypeIds = [];
-      const sampleEventTypes = [
-        {
-          name: "Wedding",
-          description: "Full-service wedding planning and coordination",
-          organizerId,
-        },
-        {
-          name: "Corporate Event",
-          description:
-            "Professional business events, conferences, and meetings",
-          organizerId,
-        },
-        {
-          name: "Birthday Party",
-          description: "Memorable birthday celebrations for all ages",
-          organizerId,
-        },
-      ];
-
-      for (const eventType of sampleEventTypes) {
-        const docRef = doc(collection(db, "eventTypes"));
-        await setDoc(docRef, {
-          ...eventType,
-          createdAt: serverTimestamp(),
-        });
-        eventTypeIds.push(docRef.id);
-      }
-
-      // Create sample event packages
-      const sampleEventPackages = [
-        {
-          title: "Elegant Wedding Package",
-          eventTypeId: eventTypeIds[0],
-          description:
-            "Complete wedding planning service including venue selection, catering, decoration, and day-of coordination.",
-          price: 5000,
-          location: "Various Venues",
-          organizerId,
-          status: "Active",
-          imageUrl:
-            "https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-        },
-        {
-          title: "Corporate Conference Package",
-          eventTypeId: eventTypeIds[1],
-          description:
-            "Professional conference planning including venue, AV equipment, catering, and registration management.",
-          price: 3500,
-          location: "Downtown Conference Center",
-          organizerId,
-          status: "Active",
-          imageUrl:
-            "https://images.unsplash.com/photo-1540317580384-e5d43867caa6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-        },
-        {
-          title: "Kids Birthday Party",
-          eventTypeId: eventTypeIds[2],
-          description:
-            "Fun-filled birthday party planning with themes, activities, decorations, and catering.",
-          price: 800,
-          location: "Party Zone",
-          organizerId,
-          status: "Active",
-          imageUrl:
-            "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-        },
-      ];
-
-      for (const eventPackage of sampleEventPackages) {
-        const docRef = doc(collection(db, "eventPackages"));
-        await setDoc(docRef, {
-          ...eventPackage,
-          createdAt: serverTimestamp(),
-        });
-      }
-
-      console.log("Sample data created successfully");
-    } catch (error) {
-      console.error("Error creating sample data:", error);
-    }
-  };
+  // const createSampleData = async () => {
+  //   try {
+  //     // Check if we already have event types
+  //     const typesSnapshot = await getDocs(collection(db, "eventTypes"));
+  //     if (!typesSnapshot.empty) {
+  //       return; // Data already exists, no need to create sample data
+  //     }
+  //
+  //     // Sample organizer ID (this should be the ID of the demo user)
+  //     const organizerId = "demo-organizer-id";
+  //
+  //     // Create sample event types
+  //     const eventTypeIds = [];
+  //     const sampleEventTypes = [
+  //       {
+  //         name: "Wedding",
+  //         description: "Full-service wedding planning and coordination",
+  //         organizerId,
+  //       },
+  //       {
+  //         name: "Corporate Event",
+  //         description:
+  //           "Professional business events, conferences, and meetings",
+  //         organizerId,
+  //       },
+  //       {
+  //         name: "Birthday Party",
+  //         description: "Memorable birthday celebrations for all ages",
+  //         organizerId,
+  //       },
+  //     ];
+  //
+  //     for (const eventType of sampleEventTypes) {
+  //       const docRef = doc(collection(db, "eventTypes"));
+  //       await setDoc(docRef, {
+  //         ...eventType,
+  //         createdAt: serverTimestamp(),
+  //       });
+  //       eventTypeIds.push(docRef.id);
+  //     }
+  //
+  //     // Create sample event packages
+  //     const sampleEventPackages = [
+  //       {
+  //         title: "Elegant Wedding Package",
+  //         eventTypeId: eventTypeIds[0],
+  //         description:
+  //           "Complete wedding planning service including venue selection, catering, decoration, and day-of coordination.",
+  //         price: 5000,
+  //         location: "Various Venues",
+  //         organizerId,
+  //         status: "Active",
+  //         imageUrl:
+  //           "https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
+  //       },
+  //       {
+  //         title: "Corporate Conference Package",
+  //         eventTypeId: eventTypeIds[1],
+  //         description:
+  //           "Professional conference planning including venue, AV equipment, catering, and registration management.",
+  //         price: 3500,
+  //         location: "Downtown Conference Center",
+  //         organizerId,
+  //         status: "Active",
+  //         imageUrl:
+  //           "https://images.unsplash.com/photo-1540317580384-e5d43867caa6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+  //       },
+  //       {
+  //         title: "Kids Birthday Party",
+  //         eventTypeId: eventTypeIds[2],
+  //         description:
+  //           "Fun-filled birthday party planning with themes, activities, decorations, and catering.",
+  //         price: 800,
+  //         location: "Party Zone",
+  //         organizerId,
+  //         status: "Active",
+  //         imageUrl:
+  //           "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+  //       },
+  //     ];
+  //
+  //     for (const eventPackage of sampleEventPackages) {
+  //       const docRef = doc(collection(db, "eventPackages"));
+  //       await setDoc(docRef, {
+  //         ...eventPackage,
+  //         createdAt: serverTimestamp(),
+  //       });
+  //     }
+  //
+  //     console.log("Sample data created successfully");
+  //   } catch (error) {
+  //     console.error("Error creating sample data:", error);
+  //   }
+  // };
 
   // Event Type CRUD operations
   const addEventType = async (eventType) => {
