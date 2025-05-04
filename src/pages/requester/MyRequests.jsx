@@ -7,6 +7,7 @@ import { FiCalendar, FiClock, FiUsers, FiFilter } from "react-icons/fi";
 const MyRequests = () => {
   const { currentUser } = useAuth();
   const { getEventRequestsByRequester, getEventPackageById } = useEvent();
+  const [packageDetailsMap, setPackageDetailsMap] = useState({});
 
   const [requests, setRequests] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -33,12 +34,26 @@ const MyRequests = () => {
     const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
+  useEffect(() => {
+    const fetchPackageDetails = async () => {
+      const details = {};
 
-  // Get package details
-  const getPackageDetails = (packageId) => {
-    const eventPackage = getEventPackageById(packageId);
-    return eventPackage || { title: "Unknown Package", price: 0 };
-  };
+      await Promise.all(
+          requests.map(async (request) => {
+            const eventPackage = await getEventPackageById(request.packageId);
+            if (eventPackage) {
+              details[request.packageId] = eventPackage;
+            }
+          })
+      );
+
+      setPackageDetailsMap(details);
+    };
+
+    if (requests.length > 0) {
+      fetchPackageDetails();
+    }
+  }, [requests, getEventPackageById]);
 
   return (
     <div>
@@ -126,7 +141,8 @@ const MyRequests = () => {
           {filteredRequests
             .sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate))
             .map((request) => {
-              const packageDetails = getPackageDetails(request.packageId);
+              const packageDetails = packageDetailsMap[request.packageId] || { title: "Loading...", price: 0 };
+
               return (
                 <div
                   key={request.id}
