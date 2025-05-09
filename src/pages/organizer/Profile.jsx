@@ -4,10 +4,13 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { FiUser, FiMail, FiBriefcase, FiPhone } from 'react-icons/fi';
 
-const OrganizerProfile = () => {
+const OrganizerProfile = () => {  
   const { currentUser, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(false);
+  const createdAtDate = new Date(currentUser.createdAt.seconds * 1000);
+  const year = createdAtDate.getFullYear();
+  const month = createdAtDate.toLocaleString('default', { month: 'long' });
 
   // Validation schema
   const validationSchema = Yup.object({
@@ -227,8 +230,8 @@ const OrganizerProfile = () => {
                   
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="text-sm font-medium text-gray-500">Member Since</p>
-                    <p className="text-2xl font-semibold text-gray-900">2025</p>
-                    <p className="text-xs text-gray-500">January</p>
+                    <p className="text-2xl font-semibold text-gray-900">{year}</p>
+                    <p className="text-xs text-gray-500">{month}</p>
                   </div>
                 </div>
               </div>
