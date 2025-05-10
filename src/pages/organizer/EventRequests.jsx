@@ -23,6 +23,8 @@ const EventRequests = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [packageDetailsMap, setPackageDetailsMap] = useState([]);
+
   // const [requester, setRequester] = useState([]);
   const [requester, setRequester] = useState({
     id: "",
@@ -33,14 +35,6 @@ const EventRequests = () => {
     mobileNumber: "",
   });
 
-  // Load requests
-  useEffect(() => {
-    if (currentUser) {
-      const organizerRequests = getEventRequestsByOrganizer(currentUser.id);
-      setRequests(organizerRequests);
-    }
-  }, [currentUser, getEventRequestsByOrganizer]);
-
   // Filter requests based on status
   const filteredRequests =
     statusFilter === "all"
@@ -49,6 +43,32 @@ const EventRequests = () => {
           (request) =>
             request.status.toLowerCase() === statusFilter.toLowerCase()
         );
+
+  // Load requests
+  useEffect(() => {
+    if (currentUser) {
+      const organizerRequests = getEventRequestsByOrganizer(currentUser.id);
+      setRequests(organizerRequests);
+    }
+  }, [currentUser, getEventRequestsByOrganizer]);
+
+  // Load package details
+  useEffect(() => {
+    const loadPackageDetails = async () => {
+      const detailsMap = {};
+      for (const request of filteredRequests) {
+        if (!detailsMap[request.packageId]) {
+          const detail = await getPackageDetails(request.packageId);
+          detailsMap[request.packageId] = detail;
+        }
+      }
+      setPackageDetailsMap(detailsMap);
+    };
+
+    if (filteredRequests.length > 0) {
+      loadPackageDetails();
+    }
+  }, [filteredRequests]); // Add filteredRequests as a dependency
 
   // Open request details modal
   const openRequestDetails = async (request) => {
@@ -245,7 +265,13 @@ const EventRequests = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredRequests.map((request) => {
-                  const packageDetails = getPackageDetails(request.packageId);
+                  const packageDetails = packageDetailsMap[
+                    request.packageId
+                  ] || {
+                    title: "Loading...",
+                    price: 0,
+                  };
+
                   //const requester = getRequesterById(request.requesterId);
                   return (
                     <tr key={request.id} className="hover:bg-gray-50">
@@ -360,7 +386,7 @@ const EventRequests = () => {
                   Event Package
                 </h3>
                 <p className="text-base font-medium text-gray-900">
-                  {getPackageDetails(selectedRequest.packageId).title}
+                  {packageDetailsMap[selectedRequest.packageId].title}
                 </p>
               </div>
 
@@ -369,7 +395,7 @@ const EventRequests = () => {
                   Price
                 </h3>
                 <p className="text-base font-medium text-gray-900">
-                  LKR {getPackageDetails(selectedRequest.packageId).price}
+                  LKR {packageDetailsMap[selectedRequest.packageId].price}
                 </p>
               </div>
 

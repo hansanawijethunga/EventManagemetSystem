@@ -39,12 +39,12 @@ const MyRequests = () => {
       const details = {};
 
       await Promise.all(
-          requests.map(async (request) => {
-            const eventPackage = await getEventPackageById(request.packageId);
-            if (eventPackage) {
-              details[request.packageId] = eventPackage;
-            }
-          })
+        requests.map(async (request) => {
+          const eventPackage = await getEventPackageById(request.packageId);
+          if (eventPackage) {
+            details[request.packageId] = eventPackage;
+          }
+        })
       );
 
       setPackageDetailsMap(details);
@@ -141,7 +141,10 @@ const MyRequests = () => {
           {filteredRequests
             .sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate))
             .map((request) => {
-              const packageDetails = packageDetailsMap[request.packageId] || { title: "Loading...", price: 0 };
+              const packageDetails = packageDetailsMap[request.packageId] || {
+                title: "Loading...",
+                price: 0,
+              };
 
               return (
                 <div
